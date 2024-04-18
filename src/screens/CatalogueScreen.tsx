@@ -1,10 +1,13 @@
 import React, { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigation } from '@react-navigation/core';
+import { StackNavigation } from '../navigation/MainNavigator';
 import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View, Image, Pressable } from 'react-native';
 import { getAnimeSearch } from '../api/JikanAPI';
 import { Anime } from '../types';
 
 export default function CatalogueScreen() {
+  const navigation = useNavigation<StackNavigation>()
   const [status, setStatus] = useState<'airing' | 'complete' | 'upcoming'>('airing')
   const animeQuery = useQuery({ queryKey: ['anime'], queryFn: () => getAnimeSearch(status) })
   const keyExtractor = useCallback((item: Anime) => `${item.mal_id.toString()}`, [])
@@ -29,7 +32,10 @@ export default function CatalogueScreen() {
   ), [])
 
   const onImagePress = useCallback((item: Anime) => {
-    console.log(item.title + ' selected.')
+    navigation.navigate('AnimeDetail', {
+      malId: item.mal_id,
+      title: item.title,
+    })
   }, [])
 
   return (

@@ -4,6 +4,11 @@ export type AnimeSearchResponse = {
   pagination: Pagination,
 }
 
+export type DetailSearchResponse = {
+  data: Anime,
+  pagination: Pagination,
+}
+
 export type Anime = {
   mal_id: number,
   url: string,
