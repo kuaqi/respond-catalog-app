@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { getAnimeById } from '../api/JikanAPI';
+import { RootState } from '../redux/store';
+import { addFavourite, removeFavourite } from '../redux/slice/FavouritesSlice';
+import { Anime } from '../types';
 
 interface Props {
   route: any,
@@ -10,14 +14,76 @@ interface Props {
 
 export default function AnimeDetailScreen({ route }: Props) {
   const { malId } = route.params
+  const dispatch = useDispatch()
+  const [isFavouritedAnime, setFavouritedAnime] = useState(false)
+  const favourites = useSelector((state: RootState) => state.favourites.items)
   const animeQuery = useQuery({ queryKey: ['anime', malId], queryFn: () => getAnimeById(malId) })
+
+  useEffect(() => {
+    initFavourites()
+  }, [])
+
+  function initFavourites() {
+    if (!favourites) return
+    if (favourites.length === 0) return
+
+    favourites.forEach((anime: Anime) => {
+      if (anime.mal_id === malId) {
+        setFavouritedAnime(true)
+      }
+    })
+  }
+
+  function onFavouritePress() {
+    if (isFavouritedAnime) {
+      const favouritedAnime = favourites.find(favourite => favourite.mal_id === malId)
+      if (favouritedAnime) {
+        dispatch(removeFavourite(favouritedAnime))
+        setFavouritedAnime(false)
+      }
+    } else if (animeQuery.data) {
+      dispatch(addFavourite(animeQuery.data))
+      setFavouritedAnime(true)
+    }
+  }
 
   function renderBanner() {
     return (
-      <Image 
-        source={{ uri: animeQuery.data?.images?.jpg?.image_url }} 
-        style={styles.bannerImage}
-      />
+      <View>
+        <Image 
+          source={{ uri: animeQuery.data?.images?.jpg?.image_url }} 
+          style={styles.bannerImage}
+        />
+        {renderFavouriteButton()}
+      </View>
+    );
+  }
+
+  function renderFavouriteButton() {
+    const favourited = '\u2764'
+    const unfavourited = '\u2661'
+    
+    return (
+      <View style={styles.favouriteContainer}>
+        {isFavouritedAnime && (
+          <TouchableOpacity
+            style={[styles.favouriteButton, { backgroundColor: 'white' } ]}
+            onPress={onFavouritePress}>
+            <Text style={[styles.favouriteText, { paddingVertical: 5 } ]}>
+              {favourited}
+            </Text>
+          </TouchableOpacity>
+        )}
+        {!isFavouritedAnime && (
+          <TouchableOpacity
+            style={[styles.favouriteButton, { backgroundColor: 'grey' } ]}
+            onPress={onFavouritePress}>
+            <Text style={[styles.favouriteText, { fontSize: 23, fontWeight: 'bold' } ]}>
+              {unfavourited}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   }
 
@@ -32,9 +98,9 @@ export default function AnimeDetailScreen({ route }: Props) {
           <View style={{ height: 8 }} />
           {animeQuery.data?.synopsis && renderSynopsis()}
           <View style={{ height: 10 }} />
-          {animeQuery.data?.year && animeQuery.isSuccess && renderYear()}
-          {animeQuery.data?.rating && animeQuery.isSuccess && renderRating()}
-          {animeQuery.data?.score && animeQuery.isSuccess && renderScore()}
+          {animeQuery.data?.year && renderYear()}
+          {animeQuery.data?.rating && renderRating()}
+          {animeQuery.data?.score && renderScore()}
         </View>
         <View style={{ height: 60 }} />
       </>
@@ -62,8 +128,8 @@ export default function AnimeDetailScreen({ route }: Props) {
       <ScrollView>
         {animeQuery.status === 'pending' && <ActivityIndicator size={"large"} />}
         {animeQuery.status === 'error' && <Text>{JSON.stringify(animeQuery.error)}</Text>}
-        {renderBanner()}
-        {renderContent()}
+        {animeQuery.isSuccess && renderBanner()}
+        {animeQuery.isSuccess && renderContent()}
       </ScrollView>
     </View>
   );
@@ -76,6 +142,23 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     paddingHorizontal: 16,
+  },
+  favouriteContainer: {
+    right: 0,
+    bottom: 0,
+    paddingBottom: 20,
+    paddingRight: 20,
+    position: 'absolute',
+  },
+  favouriteButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 28,
+    backgroundColor: 'lightgray',
+  },
+  favouriteText: {
+    fontSize: 15,
+    color: 'white',
   },
   bannerImage: {
     aspectRatio: 1,
