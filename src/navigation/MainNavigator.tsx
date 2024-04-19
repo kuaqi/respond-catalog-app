@@ -1,6 +1,6 @@
 import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
 import AnimeDetailScreen from '../screens/AnimeDetailScreen';
-import DrawerNavigator from './DrawerNavigator';
+import TabNavigator from './tab/TabNavigator';
 
 export type StackNavigation = StackNavigationProp<RootStackParamList>
 
@@ -16,7 +16,7 @@ export default function MainNavigator() {
     <Stack.Navigator initialRouteName="Main">
       <Stack.Screen
         name="Main"
-        component={DrawerNavigator}
+        component={TabNavigator}
         options={{
           headerShown: false,
         }}

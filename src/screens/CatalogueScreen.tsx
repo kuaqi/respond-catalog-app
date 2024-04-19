@@ -6,9 +6,15 @@ import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View, Im
 import { getAnimeSearch } from '../api/JikanAPI';
 import { Anime } from '../types';
 
-export default function CatalogueScreen() {
+interface Props {
+  route: any,
+}
+
+export default function CatalogueScreen({ route }: Props) {
+  const { name, params } = route
+  const { broadcast_status } = params
   const navigation = useNavigation<StackNavigation>()
-  const [status, setStatus] = useState<'airing' | 'complete' | 'upcoming'>('airing')
+  const [status, setStatus] = useState<'airing' | 'complete' | 'upcoming'>(broadcast_status)
   const animeQuery = useQuery({ queryKey: ['anime'], queryFn: () => getAnimeSearch(status) })
   const keyExtractor = useCallback((item: Anime) => `${item.mal_id.toString()}`, [])
 
@@ -40,7 +46,7 @@ export default function CatalogueScreen() {
 
   return (
     <View style={styles.container}>
-      {animeQuery.status === 'pending' && <ActivityIndicator size={"large"} />}
+      {animeQuery.isFetching && <ActivityIndicator size={"large"} />}
       {animeQuery.status === 'error' && <Text>{JSON.stringify(animeQuery.error)}</Text>}
       <FlatList
         data={animeQuery.data}
