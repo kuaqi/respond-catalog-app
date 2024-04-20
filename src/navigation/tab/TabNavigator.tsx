@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import AiringNavigator from './AiringNavigator';
 import CompleteNavigator from './CompleteNavigator';
 import UpcomingNavigator from './UpcomingNavigator';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const TabName = {
   AIRING: 'Airing',
@@ -13,6 +14,19 @@ const TabName = {
 const Tab = createBottomTabNavigator()
 
 export default function TabNavigator() {
+
+  function renderAiringIcon(focus: boolean, color: string, size: number) {
+    return (<Ionicons name='radio-outline' size={20} />);
+  }
+
+  function renderCompleteIcon(focus: boolean, color: string, size: number) {
+    return (<Ionicons name='checkmark-done-outline' size={20} />);
+  }
+
+  function renderUpcomingIcon(focus: boolean, color: string, size: number) {
+    return (<Ionicons name='calendar-outline' size={20} />);
+  }
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -27,6 +41,7 @@ export default function TabNavigator() {
         options={{
           headerShown: false,
           title: TabName.AIRING,
+          tabBarIcon: ({ focused, color, size }) => renderAiringIcon(focused, color, size)
         }}
       />
       <Tab.Screen
@@ -35,6 +50,7 @@ export default function TabNavigator() {
         options={{
           headerShown: false,
           title: TabName.COMPLETE,
+          tabBarIcon: ({ focused, color, size }) => renderCompleteIcon(focused, color, size)
         }}
       />
       <Tab.Screen
@@ -43,6 +59,7 @@ export default function TabNavigator() {
         options={{
           headerShown: false,
           title: TabName.UPCOMING,
+          tabBarIcon: ({ focused, color, size }) => renderUpcomingIcon(focused, color, size)
         }}
       />
     </Tab.Navigator>
