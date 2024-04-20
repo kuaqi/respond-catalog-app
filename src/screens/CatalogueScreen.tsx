@@ -1,12 +1,11 @@
 import React, { useCallback, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/core';
-import { StackNavigation } from '../navigation/MainNavigator';
-import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View, Image, Pressable } from 'react-native';
+import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View} from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getAnimeSearch } from '../api/JikanAPI';
 import { Anime } from '../types';
+import CatalogueListItem from '../components/CatalogueListItem';
 
 interface Props {
   route: any,
@@ -15,7 +14,6 @@ interface Props {
 export default function CatalogueScreen({ route }: Props) {
   const { name, params } = route
   const { broadcast_status } = params
-  const navigation = useNavigation<StackNavigation>()
   const [status, setStatus] = useState<'airing' | 'complete' | 'upcoming'>(broadcast_status)
   const [inputKeyword, setInputKeyword] = useState('')
   const keyExtractor = useCallback((item: Anime) => `${item.mal_id.toString()}`, [])
@@ -27,58 +25,15 @@ export default function CatalogueScreen({ route }: Props) {
   })
 
   const renderItem: ListRenderItem<Anime> = useCallback(({ item, index }) => {
-  
     if (inputKeyword === '') {
-      return (
-        <Pressable
-          onPress={() => onImagePress(item)}
-          style={[
-            styles.itemContainer,
-            index % 2 === 0 ? { marginRight: 4 } : { marginLeft: 4 },
-          ]}>
-          <Image
-            source={{ uri: item.images.jpg.image_url }}
-            style={styles.animeImage}
-          />
-          <Text style={styles.animeTitleText}>{item.title}</Text>
-          <Text style={styles.animeDescText}>{item.score}</Text>
-          <Text style={styles.animeDescText}>{item.year}</Text>
-          <Text style={styles.animeDescText}>{item.rating}</Text>
-          <View style={{ height: 18 }} />
-        </Pressable>
-      );
+      return (<CatalogueListItem item={item} index={index} />);
     }
-
     if (item.title.toLowerCase().trim().includes(inputKeyword.toLowerCase().trim())) {
-      return (
-        <Pressable
-          onPress={() => onImagePress(item)}
-          style={[
-            styles.itemContainer,
-            index % 2 === 0 ? { marginRight: 4 } : { marginLeft: 4 },
-          ]}>
-          <Image
-            source={{ uri: item.images.jpg.image_url }}
-            style={styles.animeImage}
-          />
-          <Text style={styles.animeTitleText}>{item.title}</Text>
-          <Text style={styles.animeDescText}>{item.score}</Text>
-          <Text style={styles.animeDescText}>{item.year}</Text>
-          <Text style={styles.animeDescText}>{item.rating}</Text>
-          <View style={{ height: 18 }} />
-        </Pressable>
-      );
+      return (<CatalogueListItem item={item} index={index} />);
     }
 
     return null
   }, [inputKeyword])
-
-  const onImagePress = useCallback((item: Anime) => {
-    navigation.navigate('AnimeDetail', {
-      malId: item.mal_id,
-      title: item.title,
-    })
-  }, [])
 
   function onSearch(text: string) {
     setInputKeyword(text)
@@ -162,9 +117,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 8,
   },
-  itemContainer: {
-    flex: 0.5,
-  },
   searchContainer: {
     padding: 8,
     paddingTop: 10,
@@ -193,16 +145,6 @@ const styles = StyleSheet.create({
   searchInput: {
     fontSize: 15,
     width: '100%',
-  },
-  animeImage: {
-    borderRadius: 5,
-    aspectRatio: 3 / 5,
-  },
-  animeTitleText: {
-    fontWeight: 'bold',
-  },
-  animeDescText: {
-    fontSize: 12,
   },
   listFooterComponent: {
     height: 100,
