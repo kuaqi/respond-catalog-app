@@ -19,6 +19,7 @@ export default function TabNavigator() {
         tabBarIconStyle: {},
         tabBarStyle: styles.tabBarStyle,
         tabBarLabelStyle: styles.tabBarLabelStyle,
+        tabBarHideOnKeyboard: true,
       })}>
       <Tab.Screen
         name="AiringTab"
