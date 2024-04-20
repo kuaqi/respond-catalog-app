@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/core';
 import { StackNavigation } from '../navigation/MainNavigator';
 import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View, Image, Pressable } from 'react-native';
@@ -15,8 +15,13 @@ export default function CatalogueScreen({ route }: Props) {
   const { broadcast_status } = params
   const navigation = useNavigation<StackNavigation>()
   const [status, setStatus] = useState<'airing' | 'complete' | 'upcoming'>(broadcast_status)
-  const animeQuery = useQuery({ queryKey: ['anime'], queryFn: () => getAnimeSearch(status) })
   const keyExtractor = useCallback((item: Anime) => `${item.mal_id.toString()}`, [])
+  const animeQuery = useInfiniteQuery({ 
+    queryKey: ['anime'],
+    queryFn: ({ pageParam }) => getAnimeSearch(status, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) => pages.length + 1,
+  })
 
   const renderItem: ListRenderItem<Anime> = useCallback(({ item, index }) => (
     <Pressable
@@ -44,16 +49,36 @@ export default function CatalogueScreen({ route }: Props) {
     })
   }, [])
 
+  function loadMore() {
+    if (animeQuery.hasNextPage) animeQuery.fetchNextPage()
+  }
+
+  function renderListFooter() {
+    return (
+      <View style={styles.listFooterComponent}>
+        {animeQuery.isFetchingNextPage && <ActivityIndicator size={"large"} />}
+      </View>
+    );
+  }
+
+  function renderLoadingIndicator() {
+    return (<ActivityIndicator size={"large"} style={styles.loadingIndicator} />);
+  }
+
   return (
     <View style={styles.container}>
-      {animeQuery.isFetching && <ActivityIndicator size={"large"} />}
+      {!animeQuery.isFetchedAfterMount && renderLoadingIndicator()}
       {animeQuery.status === 'error' && <Text>{JSON.stringify(animeQuery.error)}</Text>}
       <FlatList
-        data={animeQuery.data}
+        data={animeQuery.data?.pages.flatMap(page => page) || []}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         numColumns={2}
+        initialNumToRender={8}
         contentContainerStyle={styles.contentContainerStyle}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={renderListFooter}
       />
     </View>
   );
@@ -81,4 +106,10 @@ const styles = StyleSheet.create({
   animeDescText: {
     fontSize: 12,
   },
+  listFooterComponent: {
+    height: 100,
+  },
+  loadingIndicator: {
+    paddingVertical: 10,
+  }
 })

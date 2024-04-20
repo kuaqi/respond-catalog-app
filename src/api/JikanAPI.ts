@@ -5,12 +5,13 @@ export const JikanService = {
   getAnimeById,
 }
 
-export async function getAnimeSearch(status: string, query?: string) {
+export async function getAnimeSearch(status: string, pageParam: number, query?: string) {
   const baseUrl = 'https://api.jikan.moe'
   const version = 'v4'
   const type = 'anime'
-  const titleQuery = query ? `q=${query}` : ''
-  const url = baseUrl + '/' + version + '/' + type + '?' + `status=${status}` + titleQuery
+  const titleQuery = query ? `&q=${query}` : ''
+  const url = baseUrl + '/' + version + '/' + type + '?' + `status=${status}` + 
+    `&page=${pageParam}` + titleQuery
 
   const controller = new AbortController()
   const duration = 5000
