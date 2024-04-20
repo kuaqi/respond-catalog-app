@@ -1,11 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ActivityIndicator, FlatList, ListRenderItem, StyleSheet, Text, View} from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getAnimeSearch } from '../api/JikanAPI';
 import { Anime } from '../types';
 import CatalogueListItem from '../components/CatalogueListItem';
+import CustomSearchBar from '../components/CustomSearchBar';
 
 interface Props {
   route: any,
@@ -47,35 +46,6 @@ export default function CatalogueScreen({ route }: Props) {
     if (animeQuery.hasNextPage) animeQuery.fetchNextPage()
   }
 
-  function renderSearchBar() {
-    return (
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons
-            name='search'
-            size={20}
-            color='black'
-            style={styles.searchIcon}
-          />
-          <TextInput 
-            placeholder='Search'
-            value={inputKeyword}
-            onChangeText={(text) => onSearch(text)}
-            style={styles.searchInput}
-          />
-        </View>
-        <View style={styles.closeIconContainer}>
-          <Ionicons
-            name='close'
-            size={25}
-            color='black'
-            onPress={onInputClear}
-          />
-        </View>
-      </View>
-    );
-  }
-
   function renderListFooter() {
     return (
       <View style={styles.listFooterComponent}>
@@ -90,7 +60,13 @@ export default function CatalogueScreen({ route }: Props) {
 
   return (
     <View style={styles.container}>
-      {animeQuery.isSuccess && renderSearchBar()}
+      {animeQuery.isSuccess && 
+        <CustomSearchBar
+          inputKeyword={inputKeyword}
+          onSearch={onSearch}
+          onInputClear={onInputClear}
+        />
+      }
       {!animeQuery.isFetchedAfterMount && renderLoadingIndicator()}
       {animeQuery.status === 'error' && <Text>{JSON.stringify(animeQuery.error)}</Text>}
       <FlatList
@@ -116,35 +92,6 @@ const styles = StyleSheet.create({
   contentContainerStyle: {
     flexGrow: 1,
     padding: 8,
-  },
-  searchContainer: {
-    padding: 8,
-    paddingTop: 10,
-    width: '100%',
-    flexDirection: 'row',
-  },
-  searchBar: {
-    height: 40,
-    paddingLeft: 8,
-    borderRadius: 10,
-    width: '88%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'lightgrey',
-  },
-  closeIconContainer: {
-    height: 40,
-    width: '12%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchIcon: {
-    paddingHorizontal: 4,
-  },
-  searchInput: {
-    fontSize: 15,
-    width: '100%',
   },
   listFooterComponent: {
     height: 100,
